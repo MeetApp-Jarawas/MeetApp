@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>MeetApp Event</title>
+
+<meta property="og:title" content="You're invited!">
+<meta property="og:description" content="Tap to RSVP">
+<meta property="og:type" content="website">
+
+<style>
+
+body{
+font-family: Arial;
+background:#f2f2f2;
+margin:0;
+padding:0;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+text-align:center;
+}
+
+h2{
+margin-top:0;
+}
+
+.info{
+color:#666;
+margin-bottom:15px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ddd;
+font-size:16px;
+}
+
+.buttons{
+margin-top:20px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
+
+.going{background:#4CAF50;color:white;}
+.maybe{background:#FFC107;color:white;}
+.no{background:#F44336;color:white;}
+
+.status{
+margin-top:15px;
+color:#444;
+}
+
+.install{
+margin-top:25px;
+font-size:14px;
+color:#888;
+}
+
+.install a{
+color:#007BFF;
+text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h2 id="title">Loading event...</h2>
+
+<div class="info">
+<p id="time"></p>
+<p id="location"></p>
+</div>
+
+<p id="attendees"></p>
+
+<input id="name" placeholder="Your name">
+
+<div class="buttons">
+
+<button class="going" onclick="rsvp('going')">Going</button>
+<button class="maybe" onclick="rsvp('maybe')">Maybe</button>
+<button class="no" onclick="rsvp('declined')">Not Going</button>
+
+</div>
+
+<p class="status" id="status"></p>
+
+<div class="install">
+Organize events easily with  
+<b>MeetApp</b><br>
+<a href="#">Get the app</a>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// Extract invite token
+const token = window.location.pathname.split("/").pop()
+
+// Fetch event details
+fetch("https://api.meetapp.app/events/invite/" + token)
+
+.then(res => res.json())
+
+.then(data => {
+
+document.getElementById("title").innerText = data.title
+document.getElementById("time").innerText = data.time
+document.getElementById("location").innerText = data.location
+
+document.getElementById("attendees").innerText =
+data.going + " going • " + data.maybe + " maybe"
+
+})
+
+// RSVP
+function rsvp(status){
+
+const name = document.getElementById("name").value
+
+if(!name){
+alert("Please enter your name")
+return
+}
+
+fetch("https://api.meetapp.app/events/rsvp",{
+
+method:"POST",
+
+headers:{
+'Content-Type':'application/json'
+},
+
+body:JSON.stringify({
+
+token:token,
+name:name,
+status:status
+
+})
+
+})
+
+.then(res=>res.json())
+
+.then(()=>{
+
+document.getElementById("status").innerText =
+"RSVP saved 🎉"
+
+})
+
+}
+
+</script>
+
+</body>
+</html>

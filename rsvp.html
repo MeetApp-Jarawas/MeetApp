@@ -107,18 +107,20 @@ text-decoration:none;
 
 <input id="name" placeholder="Your name">
 
+<input id="phone" placeholder="Your phone number" type="tel">
+
 <div class="buttons">
 
-<button class="going" onclick="rsvp('going')">Going</button>
-<button class="maybe" onclick="rsvp('maybe')">Maybe</button>
-<button class="no" onclick="rsvp('declined')">Not Going</button>
+<button class="going" onclick="rsvp('Accepted')">Going</button>
+<button class="maybe" onclick="rsvp('Maybe')">Maybe</button>
+<button class="no" onclick="rsvp('Declined')">Not Going</button>
 
 </div>
 
 <p class="status" id="status"></p>
 
 <div class="install">
-Organize events easily with  
+Organize events easily with
 <b>MeetApp</b><br>
 <a href="#">Get the app</a>
 </div>
@@ -129,63 +131,110 @@ Organize events easily with
 
 <script>
 
-// Extract invite token
-const token = window.location.pathname.split("/").pop()
+const API_BASE_URL = "https://api.meetapp.app";
 
-// Fetch event details
-fetch("https://api.meetapp.app/events/invite/" + token)
+// Extract encoded event ID from URL path
+const encodedEventId = window.location.pathname.split("/").pop();
 
-.then(res => res.json())
+// Fetch event details from Lambda
+async function loadEventDetails() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/meetapp/events/rsvp/${encodedEventId}`);
+    const data = await response.json();
 
-.then(data => {
+    if (data.success && data.data) {
+      const event = data.data;
 
-document.getElementById("title").innerText = data.title
-document.getElementById("time").innerText = data.time
-document.getElementById("location").innerText = data.location
+      // Set event title
+      document.getElementById("title").innerText = event.title || "Event";
 
-document.getElementById("attendees").innerText =
-data.going + " going • " + data.maybe + " maybe"
+      // Format and display time
+      const startTime = new Date(event.evStartTime);
+      const endTime = new Date(event.evEndTime);
+      const dateStr = startTime.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      const startTimeStr = startTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const endTimeStr = endTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
 
-})
+      document.getElementById("time").innerText = `${dateStr}, ${startTimeStr} - ${endTimeStr}`;
 
-// RSVP
-function rsvp(status){
+      // Display location if available
+      if (event.location) {
+        document.getElementById("location").innerText = event.location;
+      }
 
-const name = document.getElementById("name").value
-
-if(!name){
-alert("Please enter your name")
-return
+      // Display RSVP counts
+      const counts = event.rsvpStatus;
+      document.getElementById("attendees").innerText =
+        `${counts.accepted} going • ${counts.maybe} maybe • ${counts.notResponded} awaiting response`;
+    } else {
+      document.getElementById("title").innerText = "Event not found";
+    }
+  } catch (error) {
+    console.error("Error loading event details:", error);
+    document.getElementById("title").innerText = "Error loading event";
+  }
 }
 
-fetch("https://api.meetapp.app/events/rsvp",{
+// Submit RSVP
+async function rsvp(status) {
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone")?.value?.trim() || "";
 
-method:"POST",
+  if (!name) {
+    alert("Please enter your name");
+    return;
+  }
 
-headers:{
-'Content-Type':'application/json'
-},
+  if (!phone) {
+    alert("Please enter your phone number");
+    return;
+  }
 
-body:JSON.stringify({
+  try {
+    const response = await fetch(`${API_BASE_URL}/meetapp/events/rsvp`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        encoded_event_id: encodedEventId,
+        name: name,
+        phone: phone,
+        status: status
+      })
+    });
 
-token:token,
-name:name,
-status:status
+    const data = await response.json();
 
-})
-
-})
-
-.then(res=>res.json())
-
-.then(()=>{
-
-document.getElementById("status").innerText =
-"RSVP saved 🎉"
-
-})
-
+    if (data.success) {
+      document.getElementById("status").innerText = "RSVP saved � ";
+      // Clear form
+      document.getElementById("name").value = "";
+      if (document.getElementById("phone")) {
+        document.getElementById("phone").value = "";
+      }
+    } else {
+      alert("Error: " + (data.message || "Failed to save RSVP"));
+    }
+  } catch (error) {
+    console.error("Error submitting RSVP:", error);
+    alert("Error submitting RSVP. Please try again.");
+  }
 }
+
+// Load event details when page loads
+loadEventDetails();
 
 </script>
 

@@ -131,7 +131,7 @@ Organize events easily with
 
 <script>
 
-const API_BASE_URL = "https://api.meetapp.app";
+const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Prod";
 
 // Extract encoded event ID from URL path
 const encodedEventId = window.location.pathname.split("/").pop();
@@ -139,7 +139,7 @@ const encodedEventId = window.location.pathname.split("/").pop();
 // Fetch event details from Lambda
 async function loadEventDetails() {
   try {
-    const response = await fetch(`${API_BASE_URL}/meetapp/events/rsvp/${encodedEventId}`);
+    const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
     const data = await response.json();
 
     if (data.success && data.data) {
@@ -202,7 +202,7 @@ async function rsvp(status) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/meetapp/events/rsvp`, {
+    const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'

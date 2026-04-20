@@ -197,6 +197,24 @@ Organize events easily with
 
 const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Prod";
 const HOST_DP_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ccircle cx='24' cy='18' r='8' fill='%23bdbdbd'/%3E%3Crect x='11' y='30' width='26' height='12' rx='6' fill='%23bdbdbd'/%3E%3C/svg%3E";
+let isRsvpClosed = false;
+
+function closeRsvp(message) {
+  isRsvpClosed = true;
+  document.getElementById("status").innerText = message;
+
+  const buttons = document.querySelectorAll(".buttons button");
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.style.opacity = "0.6";
+    button.style.cursor = "not-allowed";
+  });
+
+  const nameInput = document.getElementById("name");
+  const phoneInput = document.getElementById("phone");
+  if (nameInput) nameInput.disabled = true;
+  if (phoneInput) phoneInput.disabled = true;
+}
 
 // Extract encoded event ID from URL path
 function getEncodedEventId() {
@@ -256,6 +274,17 @@ async function loadEventDetails() {
 
       document.getElementById("time").innerText = `${dateStr}, ${startTimeStr} - ${endTimeStr}`;
 
+      const now = Date.now();
+      const startMs = Number(event.evStartTime);
+      const endMs = Number(event.evEndTime);
+      if (!Number.isNaN(startMs) && now >= startMs) {
+        if (!Number.isNaN(endMs) && now >= endMs) {
+          closeRsvp("This event has already occurred. RSVP is closed.");
+        } else {
+          closeRsvp("This event has already started. RSVP is closed.");
+        }
+      }
+
       // Display location if available
       if (event.location) {
         if (event.location.startsWith("http://") || event.location.startsWith("https://")) {
@@ -307,6 +336,11 @@ async function loadEventDetails() {
 
 // Submit RSVP
 async function rsvp(status) {
+  if (isRsvpClosed) {
+    document.getElementById("status").innerText = "This event is no longer accepting RSVP responses.";
+    return;
+  }
+
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone")?.value?.trim() || "";
 

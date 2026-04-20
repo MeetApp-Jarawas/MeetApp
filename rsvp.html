@@ -136,9 +136,34 @@ const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Pr
 // Extract encoded event ID from URL path
 const encodedEventId = window.location.pathname.split("/").pop();
 
+function getEncodedEventId() {
+  const hashValue = window.location.hash.replace("#", "").trim();
+  if (hashValue) {
+    return hashValue;
+  }
+
+  const pathSegments = window.location.pathname.split("/").filter(Boolean);
+  const lastSegment = pathSegments[pathSegments.length - 1] || "";
+  if (!lastSegment || lastSegment.endsWith(".html")) {
+    return "";
+  }
+
+  return lastSegment;
+}
+
+const encodedEventId = getEncodedEventId();
+
+console.log("[RSVP] Encoded Event ID:", encodedEventId);
+  
 // Fetch event details from Lambda
 async function loadEventDetails() {
+  if (!encodedEventId) {
+    document.getElementById("title").innerText = "Invalid event link";
+    return;
+  }
+  
   try {
+    console.log("[RSVP] GET URL:", `${API_BASE_URL}/meetapp/events/rsvp/${encodedEventId}`);
     const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
     const data = await response.json();
 

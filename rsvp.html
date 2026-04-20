@@ -43,6 +43,57 @@ color:#666;
 margin-bottom:15px;
 }
 
+.host{
+display:flex;
+align-items:center;
+gap:12px;
+margin:15px 0;
+padding:12px;
+border:1px solid #eee;
+border-radius:10px;
+text-align:left;
+}
+
+.host img{
+width:48px;
+height:48px;
+border-radius:50%;
+object-fit:cover;
+background:#e9e9e9;
+}
+
+.hostName{
+font-weight:600;
+color:#333;
+}
+
+.hostLabel{
+font-size:11px;
+font-weight:700;
+letter-spacing:0.5px;
+color:#888;
+text-transform:uppercase;
+margin-bottom:2px;
+}
+
+.hostPhone{
+font-size:13px;
+color:#666;
+}
+
+.invitationImage{
+width:100%;
+margin:12px 0 16px;
+border-radius:10px;
+object-fit:cover;
+display:none;
+}
+
+.locationLink{
+color:#007BFF;
+text-decoration:none;
+}
+
 input{
 width:100%;
 padding:12px;
@@ -103,6 +154,17 @@ text-decoration:none;
 <p id="location"></p>
 </div>
 
+<div class="host" id="hostSection" style="display:none;">
+<img id="hostDp" alt="Host profile">
+<div>
+<div class="hostLabel">Host</div>
+<div class="hostName" id="hostName"></div>
+<div class="hostPhone" id="hostPhone"></div>
+</div>
+</div>
+
+<img id="invitationImage" class="invitationImage" alt="Event invitation">
+
 <p id="attendees"></p>
 
 <input id="name" placeholder="Your name">
@@ -132,6 +194,7 @@ Organize events easily with
 <script>
 
 const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Prod";
+const HOST_DP_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ccircle cx='24' cy='18' r='8' fill='%23bdbdbd'/%3E%3Crect x='11' y='30' width='26' height='12' rx='6' fill='%23bdbdbd'/%3E%3C/svg%3E";
 
 // Extract encoded event ID from URL path
 function getEncodedEventId() {
@@ -193,7 +256,38 @@ async function loadEventDetails() {
 
       // Display location if available
       if (event.location) {
-        document.getElementById("location").innerText = event.location;
+        if (event.location.startsWith("http://") || event.location.startsWith("https://")) {
+          document.getElementById("location").innerHTML = `<a class="locationLink" href="${event.location}" target="_blank" rel="noopener noreferrer">Open location</a>`;
+        } else {
+          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`;
+          document.getElementById("location").innerHTML = `<a class="locationLink" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">${event.location}</a>`;
+        }
+      }
+
+      // Display host details
+      if (event.host) {
+        document.getElementById("hostSection").style.display = "flex";
+        document.getElementById("hostName").innerText = event.host.name || "Host";
+        document.getElementById("hostPhone").innerText = event.host.phone || "";
+
+        const hostDp = document.getElementById("hostDp");
+        hostDp.onerror = function () {
+          this.onerror = null;
+          this.src = HOST_DP_FALLBACK;
+        };
+
+        if (event.host.dpUrl) {
+          hostDp.src = event.host.dpUrl;
+        } else {
+          hostDp.src = HOST_DP_FALLBACK;
+        }
+      }
+
+      // Display invitation image
+      if (event.invitationUrl) {
+        const invitationImage = document.getElementById("invitationImage");
+        invitationImage.src = event.invitationUrl;
+        invitationImage.style.display = "block";
       }
 
       // Display RSVP counts

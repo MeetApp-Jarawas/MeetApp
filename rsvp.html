@@ -184,7 +184,9 @@ text-decoration:none;
 <div class="install">
 Organize events easily with
 <b>MeetApp</b><br>
-<a href="#">Get the app</a>
+<a href="https://apps.apple.com/app/id6759666840" target="_blank">Download on the App Store</a>
+&nbsp;·&nbsp;
+<a href="https://play.google.com/store/apps/details?id=com.jarawas.meetapp" target="_blank">Get it on Google Play</a>
 </div>
 
 </div>
@@ -215,14 +217,14 @@ function getEncodedEventId() {
 const encodedEventId = getEncodedEventId();
 
 console.log("[RSVP] Encoded Event ID:", encodedEventId);
-
+  
 // Fetch event details from Lambda
 async function loadEventDetails() {
   if (!encodedEventId) {
     document.getElementById("title").innerText = "Invalid event link";
     return;
   }
-
+  
   try {
     console.log("[RSVP] GET URL:", `${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
     const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
@@ -335,7 +337,7 @@ async function rsvp(status) {
     const data = await response.json();
 
     if (data.success) {
-      document.getElementById("status").innerText = "RSVP saved � ";
+      document.getElementById("status").innerText = "RSVP saved 🎉";
       // Clear form
       document.getElementById("name").value = "";
       if (document.getElementById("phone")) {

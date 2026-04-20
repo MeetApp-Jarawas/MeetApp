@@ -134,8 +134,6 @@ Organize events easily with
 const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Prod";
 
 // Extract encoded event ID from URL path
-const encodedEventId = window.location.pathname.split("/").pop();
-
 function getEncodedEventId() {
   const hashValue = window.location.hash.replace("#", "").trim();
   if (hashValue) {

@@ -152,16 +152,16 @@ function getEncodedEventId() {
 const encodedEventId = getEncodedEventId();
 
 console.log("[RSVP] Encoded Event ID:", encodedEventId);
-  
+
 // Fetch event details from Lambda
 async function loadEventDetails() {
   if (!encodedEventId) {
     document.getElementById("title").innerText = "Invalid event link";
     return;
   }
-  
+
   try {
-    console.log("[RSVP] GET URL:", `${API_BASE_URL}/meetapp/events/rsvp/${encodedEventId}`);
+    console.log("[RSVP] GET URL:", `${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
     const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp/${encodedEventId}`);
     const data = await response.json();
 

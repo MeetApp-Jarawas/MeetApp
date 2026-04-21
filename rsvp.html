@@ -198,22 +198,34 @@ Organize events easily with
 const API_BASE_URL = "https://bk5d7i9au0.execute-api.ap-south-1.amazonaws.com/Prod";
 const HOST_DP_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ccircle cx='24' cy='18' r='8' fill='%23bdbdbd'/%3E%3Crect x='11' y='30' width='26' height='12' rx='6' fill='%23bdbdbd'/%3E%3C/svg%3E";
 let isRsvpClosed = false;
+let isSubmittingRsvp = false;
+
+function setRsvpSubmitting(isSubmitting) {
+  isSubmittingRsvp = isSubmitting;
+
+  const buttons = document.querySelectorAll(".buttons button");
+  buttons.forEach((button) => {
+    const shouldDisable = isSubmitting || isRsvpClosed;
+    button.disabled = shouldDisable;
+    button.style.opacity = shouldDisable ? "0.6" : "1";
+    button.style.cursor = shouldDisable ? "not-allowed" : "pointer";
+  });
+
+  const nameInput = document.getElementById("name");
+  const phoneInput = document.getElementById("phone");
+  if (nameInput) nameInput.disabled = isSubmitting || isRsvpClosed;
+  if (phoneInput) phoneInput.disabled = isSubmitting || isRsvpClosed;
+
+  if (isSubmitting) {
+    document.getElementById("status").innerText = "Submitting RSVP...";
+  }
+}
 
 function closeRsvp(message) {
   isRsvpClosed = true;
   document.getElementById("status").innerText = message;
 
-  const buttons = document.querySelectorAll(".buttons button");
-  buttons.forEach((button) => {
-    button.disabled = true;
-    button.style.opacity = "0.6";
-    button.style.cursor = "not-allowed";
-  });
-
-  const nameInput = document.getElementById("name");
-  const phoneInput = document.getElementById("phone");
-  if (nameInput) nameInput.disabled = true;
-  if (phoneInput) phoneInput.disabled = true;
+  setRsvpSubmitting(false);
 }
 
 // Extract encoded event ID from URL path
@@ -341,6 +353,10 @@ async function rsvp(status) {
     return;
   }
 
+  if (isSubmittingRsvp) {
+    return;
+  }
+
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone")?.value?.trim() || "";
 
@@ -353,6 +369,8 @@ async function rsvp(status) {
     alert("Please enter your phone number");
     return;
   }
+
+  setRsvpSubmitting(true);
 
   try {
     const response = await fetch(`${API_BASE_URL}/meetapp/event/rsvp`, {
@@ -383,6 +401,10 @@ async function rsvp(status) {
   } catch (error) {
     console.error("Error submitting RSVP:", error);
     alert("Error submitting RSVP. Please try again.");
+  } finally {
+    if (!isRsvpClosed) {
+      setRsvpSubmitting(false);
+    }
   }
 }
 

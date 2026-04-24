@@ -275,6 +275,12 @@ async function loadEventDetails() {
         month: 'short',
         day: 'numeric'
       });
+        const endDateStr = endTime.toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
       const startTimeStr = startTime.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
@@ -284,7 +290,10 @@ async function loadEventDetails() {
         minute: '2-digit'
       });
 
-      document.getElementById("time").innerText = `${dateStr}, ${startTimeStr} - ${endTimeStr}`;
+        const isSameDay = startTime.toDateString() === endTime.toDateString();
+        document.getElementById("time").innerText = isSameDay
+          ? `${dateStr}, ${startTimeStr} - ${endTimeStr}`
+          : `${dateStr}, ${startTimeStr} - ${endDateStr}, ${endTimeStr}`;
 
       const now = Date.now();
       const startMs = Number(event.evStartTime);
